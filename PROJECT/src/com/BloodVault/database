@@ -1,0 +1,66 @@
+CREATE DATABASE IF NOT EXISTS bloodvault
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_0900_ai_ci;
+USE bloodvault;
+CREATE TABLE IF NOT EXISTS blood_groups (
+  code VARCHAR(3) PRIMARY KEY
+) ENGINE=InnoDB;
+
+INSERT IGNORE INTO blood_groups(code) VALUES
+ ('A+'),('A-'),('B+'),('B-'),('AB+'),('AB-'),('O+'),('O-');
+
+CREATE TABLE IF NOT EXISTS donors (
+  donor_id      VARCHAR(32)  PRIMARY KEY,
+  first_name    VARCHAR(64)  NOT NULL,
+  last_name     VARCHAR(64)  NOT NULL,
+  age           INT          NOT NULL,
+  blood_group   VARCHAR(3)   NOT NULL,
+  height_cm     INT          NULL,
+  weight_kg     INT          NULL,
+  email         VARCHAR(128) NOT NULL UNIQUE,
+  mobile        VARCHAR(20)  NOT NULL,
+  location      VARCHAR(128) NOT NULL,
+  password_hash CHAR(64)     NOT NULL,
+  created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_donor_bg FOREIGN KEY (blood_group) REFERENCES blood_groups(code)
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS hospitals (
+  hospital_id   VARCHAR(32)  PRIMARY KEY,
+  name          VARCHAR(128) NOT NULL,
+  license_no    VARCHAR(64)  NOT NULL,
+  location      VARCHAR(128) NOT NULL,
+  email         VARCHAR(128) NOT NULL UNIQUE,
+  phone         VARCHAR(20)  NOT NULL,
+  password_hash CHAR(64)     NOT NULL,
+  created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS donations (
+  donation_id    BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  donor_id       VARCHAR(32)  NOT NULL,
+  hospital_id    VARCHAR(32)  NOT NULL,
+  donation_date  DATE         NOT NULL,
+  blood_group    VARCHAR(3)   NOT NULL,
+  units          INT          NOT NULL,
+  status         ENUM('Available','Used') NOT NULL DEFAULT 'Available',
+  bp             VARCHAR(32),
+  heart_rate     INT,
+  expiry_date    DATE         NOT NULL,
+  created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_don_donor     FOREIGN KEY (donor_id)    REFERENCES donors(donor_id),
+  CONSTRAINT fk_don_hospital  FOREIGN KEY (hospital_id) REFERENCES hospitals(hospital_id),
+  CONSTRAINT fk_don_bg        FOREIGN KEY (blood_group) REFERENCES blood_groups(code)
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS donor_health_latest (
+  donor_id            VARCHAR(32) PRIMARY KEY,
+  last_donation_date  DATE,
+  blood_count_g_dl    DECIMAL(4,1),
+  bp                  VARCHAR(32),
+  height_cm           INT,
+  weight_kg           INT,
+  heart_rate          INT,
+  updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_health_donor FOREIGN KEY (donor_id) REFERENCES donors(donor_id)
+) ENGINE=InnoDB;
+SHOW DATABASES;
+USE bloodvault;
+SHOW TABLES;
